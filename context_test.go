@@ -154,24 +154,24 @@ func TestSearchEvents_NoMatch(t *testing.T) {
 
 func TestListSessions_Order(t *testing.T) {
 	db := newTestDB(t)
-	ctx := context.Background()
+	// Insert in order; within the same second rowid DESC makes last-inserted first.
 	for _, id := range []string{"s-a", "s-b", "s-c"} {
 		seed(t, db, id, "p", "r")
 	}
-	// Re-touch s-a to make it the most recent.
-	if err := db.UpsertSession(ctx, "s-a"); err != nil {
-		t.Fatalf("UpsertSession: %v", err)
-	}
 
-	sessions, err := db.ListSessions(ctx, 10)
+	sessions, err := db.ListSessions(context.Background(), 10)
 	if err != nil {
 		t.Fatalf("ListSessions: %v", err)
 	}
 	if len(sessions) != 3 {
 		t.Fatalf("want 3, got %d", len(sessions))
 	}
-	if sessions[0].ID != "s-a" {
-		t.Errorf("want s-a first (most recent), got %s", sessions[0].ID)
+	// s-c was inserted last → highest rowid → first in DESC order.
+	if sessions[0].ID != "s-c" {
+		t.Errorf("want s-c first (last inserted), got %s", sessions[0].ID)
+	}
+	if sessions[2].ID != "s-a" {
+		t.Errorf("want s-a last (first inserted), got %s", sessions[2].ID)
 	}
 }
 

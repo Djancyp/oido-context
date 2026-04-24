@@ -1,89 +1,58 @@
-# Oido PostgreSQL Extension
+# Oido Context Extension
 
-Execute SQL queries, list tables, and describe PostgreSQL database schemas. This extension provides MCP tools for database exploration and query execution.
+Automatically captures every user prompt and assistant response into a local SQLite database, keyed by session ID. Use the MCP tools below to retrieve or search past conversation history — useful for expanding the current session with prior context.
 
 ## Available Tools
 
-### `execute_sql`
-Execute a SQL query against the PostgreSQL database.
+### `get_session_context`
+Retrieve all stored events for a specific session in chronological order.
 
 **Parameters:**
-- `query` (string, required): SQL query to execute (SELECT only for safety)
-- `limit` (number, optional): Maximum rows to return (default: 100)
+- `session_id` (string, required): Session ID to look up
+- `limit` (int, optional): Max events to return (default: 50)
 
-**Returns:** Formatted table results with column headers and row counts.
+**Returns:** User prompts and assistant responses for that session.
 
-### `list_tables`
-List all tables in the PostgreSQL database.
-
-**Parameters:** None
-
-**Returns:** List of schema.table names.
-
-### `describe_table`
-Describe a table's columns, types, and constraints.
+### `search_context`
+Search stored conversation history by keyword.
 
 **Parameters:**
-- `schema` (string, optional): Database schema name (default: public)
-- `table` (string, required): Table name to describe
+- `query` (string, required): Search terms
+- `limit` (int, optional): Max results (default: 20)
 
-**Returns:** Column names, data types, nullable status, and defaults.
+**Returns:** Matching events from any session, most recent first.
 
-## Example Usage
+### `list_sessions`
+List recent conversation sessions.
 
-```
-User: What tables are in the database?
+**Parameters:**
+- `limit` (int, optional): Number of sessions (default: 10)
 
-Assistant: I'll list all tables in your PostgreSQL database.
+**Returns:** Session IDs with creation and last-active timestamps.
 
-[Uses list_tables tool]
+### `get_recent_context`
+Load conversation context from the N most recent sessions.
 
-Tables (5):
+**Parameters:**
+- `n_sessions` (int, optional): Sessions to include (default: 3)
+- `limit` (int, optional): Max events per session (default: 20)
 
-public.users
-public.orders
-public.products
-...
-```
-
-```
-User: Show me the first 10 users
-
-Assistant: I'll query the users table for you.
-
-[Uses execute_sql tool with query: "SELECT * FROM public.users", limit: 10]
-
-Query returned 5 columns
-
-id | name | email | created_at | status
-----------------------------------------
-1 | Alice | alice@example.com | 2024-01-01 | active
-2 | Bob | bob@example.com | 2024-01-02 | active
-
-Total rows: 10
-```
+**Returns:** Events from the most recent sessions, grouped chronologically.
 
 ## When to Use
 
-- User asks to query database or run SQL
-- User wants to explore database schema
-- User asks about tables, columns, or data
-- User wants to analyze database structure
-- User asks for data analysis or reporting
+- User says "remember what we were doing", "continue from last time", "expand context"
+- User asks "what did we discuss about X" or "find where we talked about Y"
+- User references a past session or prior work
+- Starting a session that seems to continue previous work
 
-## Notes
+## How Context Is Captured
 
-- **Configurable SQL permissions**: Each SQL operation type (SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, TRUNCATE) can be individually enabled/disabled via environment variables
-- **Default read-only**: Only SELECT queries enabled by default
-- **Environment variables for permissions**:
-  - `POSTGRES_ALLOW_SELECT` (default: true)
-  - `POSTGRES_ALLOW_INSERT` (default: false)
-  - `POSTGRES_ALLOW_UPDATE` (default: false)
-  - `POSTGRES_ALLOW_DELETE` (default: false)
-  - `POSTGRES_ALLOW_CREATE` (default: false)
-  - `POSTGRES_ALLOW_ALTER` (default: false)
-  - `POSTGRES_ALLOW_DROP` (default: false)
-  - `POSTGRES_ALLOW_TRUNCATE` (default: false)
-- **Row limits**: Default 100 rows for SELECT queries
-- **Connection pooling**: 10 max open, 5 idle, 5 min lifetime
-- Uses environment variables for connection: POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DATABASE, POSTGRES_USER, POSTGRES_PASSWORD
+Capture is automatic — no manual action needed:
+- **UserPromptSubmit hook** → stores the user's prompt
+- **Stop hook** → stores the assistant's final response
+
+Both are keyed by session ID and stored in SQLite at:
+`~/.config/oido/extensions/oido-context/context.db`
+
+Override the path with the `OIDO_CONTEXT_DB` environment variable.
