@@ -1,0 +1,11 @@
+name = "get-session-context"
+description = "Retrieve conversation history for a specific session."
+
+prompt = """
+Retrieve context for session {{session_id}} using the get_session_context tool.
+Summarize the key topics discussed and any decisions made.
+"""
+
+[parameters]
+session_id = { type = "string", description = "Session ID to retrieve", required = true }
+limit = { type = "number", description = "Max events to return (default: 50)", default = 50 }

@@ -1,0 +1,11 @@
+name = "recent-context"
+description = "Load context from the N most recent sessions to expand current session."
+
+prompt = """
+Load recent context from the {{n_sessions}} most recent sessions using the get_recent_context tool.
+Summarize what was discussed and highlight anything relevant to the current task.
+"""
+
+[parameters]
+n_sessions = { type = "number", description = "Number of sessions to load (default: 3)", default = 3 }
+limit = { type = "number", description = "Max events per session (default: 20)", default = 20 }

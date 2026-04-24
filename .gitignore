@@ -1,0 +1,19 @@
+# Build artifacts
+*.exe
+*.so
+*.dylib
+*.zip
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS
+.DS_Store
+
+# Env
+.env
+oido-context-mcp

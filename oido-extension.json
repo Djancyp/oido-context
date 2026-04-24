@@ -1,0 +1,57 @@
+{
+  "name": "oido-context",
+  "version": "2.0.0",
+  "description": "Session context capture and retrieval. Stores prompts and responses in SQLite; query via MCP tools.",
+  "mcpServers": {
+    "oido-context": {
+      "command": "~/.config/oido/extensions/oido-context/oido-context-mcp",
+      "args": [],
+      "env": {
+        "OIDO_CONTEXT_DB": ""
+      }
+    }
+  },
+  "hooks": {
+    "UserPromptSubmit": {
+      "matcher": "",
+      "sequential": false,
+      "hooks": [
+        {
+          "type": "command",
+          "command": "~/.config/oido/extensions/oido-context/oido-context-mcp/oido-context-mcp store UserPromptSubmit",
+          "name": "oido-context-user-hook",
+          "description": "Captures user prompt to context store",
+          "timeout": 10,
+          "env": {},
+          "source": "user"
+        }
+      ]
+    },
+    "Stop": {
+      "matcher": "",
+      "sequential": false,
+      "hooks": [
+        {
+          "type": "command",
+          "command": "~/.config/oido/extensions/oido-context/oido-context-mcp/oido-context-mcp store Stop",
+          "name": "oido-context-stop-hook",
+          "description": "Captures assistant response to context store",
+          "timeout": 10,
+          "env": {},
+          "source": "user"
+        }
+      ]
+    }
+  },
+  "contextFileName": "OIDO.md",
+  "excludeTools": [],
+	"runtime": "make build",
+  "settings": [
+    {
+      "name": "OIDO_CONTEXT_DB",
+      "description": "Path to SQLite DB file (default: ~/.config/oido/extensions/oido-context/context.db)",
+      "type": "string",
+      "defaultValue": ""
+    }
+  ]
+}

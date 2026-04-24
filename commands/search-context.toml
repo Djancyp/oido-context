@@ -1,0 +1,11 @@
+name = "search-context"
+description = "Search past conversation history across all sessions."
+
+prompt = """
+Search conversation history for "{{query}}" using the search_context tool.
+Present the most relevant results with session IDs and timestamps.
+"""
+
+[parameters]
+query = { type = "string", description = "Search terms", required = true }
+limit = { type = "number", description = "Max results (default: 20)", default = 20 }
